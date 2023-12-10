@@ -57,7 +57,7 @@ docker-compose up -d
 
 **url {host}/transcribe**
 
-![Alt text](upload_file_form.pngg)
+![Alt text](upload_file_form.png)
 
 ### Get article by job id
 

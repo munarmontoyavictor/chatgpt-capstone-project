@@ -65,15 +65,16 @@ class Media:
             original_audio_path = file_path.replace(COMPRESS_PREFIX, "")
             if os.path.exists(original_audio_path):
                 os.remove(original_audio_path)
-                print(f"Deleted original audio file: {original_audio_path}")
 
-            # Remove the corresponding MP4 file (if it exists)
             mp4_path = os.path.splitext(original_audio_path)[0] + MP4_FORMAT
             if os.path.exists(mp4_path):
                 os.remove(mp4_path)
-                print(f"Deleted corresponding MP4 file: {mp4_path}")
+
+            mp3_path = os.path.splitext(original_audio_path)[0] + MP3_FORMAT
+            if os.path.exists(mp3_path):
+                os.remove(mp3_path)
 
             return True
         except Exception as e:
-            print(f"Error deleting files: {e}")
+            logging.error(f"Error deleting files: {e}")
             return False

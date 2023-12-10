@@ -1,0 +1,10 @@
+Flask
+Flask-WTF
+pymongo
+openai
+boto3
+Werkzeug
+python-dotenv
+Flask-Cors
+moviepy
+

@@ -1,0 +1,5 @@
+.env
+app/.env
+mongo-volume/
+app/__pycache__/
+mongo-data/

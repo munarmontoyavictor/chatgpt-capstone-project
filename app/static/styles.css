@@ -1,0 +1,14 @@
+.form-container {
+    border: 2px solid green;
+    padding: 40px;
+}
+
+.float-right {
+    float: right;
+}
+
+.submit {
+    background-color: green;
+    color: rgb(255, 255, 255);
+    padding-bottom: 5px;
+}

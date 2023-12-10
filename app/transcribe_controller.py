@@ -1,9 +1,9 @@
-import os
 import logging
 from threading import Thread
 from brain_module import ChatGPT
 from mongo_api import MongoAPI
 from media_util import Media
+import json
 MEDIA_FILE_STORAGE = 'media/'
 
 class TranscribeController:
@@ -12,14 +12,21 @@ class TranscribeController:
         self.data = data
 
     def process_media(self):
-        filename = self.data['file_name']
-        media = Media(filename)
-        output_filepath = media.compress_mp3()
-        whisper = ChatGPT()
-        response = whisper.create_transcription(output_filepath)
-        transcription = {'transcription':response}
-        self.db_api.update(transcription, self.data['job_id'])
-        media.delete_files(output_filepath)
+        try:
+            filename = self.data['file_name']
+            media = Media(filename)
+            output_filepath = media.compress_mp3()
+            whisper = ChatGPT()
+            text_transcription = whisper.create_transcription(output_filepath)
+            article_obj= whisper.create_article(text_transcription)
+            json_dict = json.loads(article_obj)
+            json_dict['transcription'] = text_transcription
+            self.db_api.update(json_dict, self.data['job_id'])
+            media.delete_files(output_filepath)
+        except Exception as e:
+             logging.error(f"Error processing media: {e}")
+
+
 
     def save_form(self):
         job_id_obj = self.db_api.save(self.data)

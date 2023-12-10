@@ -68,6 +68,5 @@ class MongoAPI:
         updated_data = {"$set": data}
         response = self.collection.update_one(filter_criteria, updated_data)
         output = {'Status': 'Successfully Updated' if response.modified_count > 0 else "Nothing was updated."}
-        logging.error(f'Update status: {output}, db_id: {db_id}, data: {data}')
         return output
 

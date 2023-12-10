@@ -1,9 +1,11 @@
 import os
-from pymongo import MongoClient
-from dotenv import load_dotenv
-from pymongo.errors import ServerSelectionTimeoutError, OperationFailure
 import logging
-# logging.getLogger('pymongo').setLevel(logging.WARNING)
+from dotenv import load_dotenv
+from pymongo import MongoClient
+from bson.objectid import ObjectId
+from bson import errors
+from pymongo.errors import ServerSelectionTimeoutError, OperationFailure
+
 class MongoAPI:
     def __init__(self, collection_name):
         load_dotenv()
@@ -17,7 +19,11 @@ class MongoAPI:
         self.collection = cursor[collection_name]
 
     def getDB(self):
-        mongoClient = MongoClient("mongodb://" + str(self.username) + ":" + str(self.password) + "@" + str(self.server) + ":" + str(self.port) + "/?authMechanism=DEFAULT&authSource=" + str(self.db), serverSelectionTimeoutMS=500)
+        mongo_uri = (
+            f"mongodb://{self.username}:{self.password}@"
+            f"{self.server}:{self.port}/?authMechanism=DEFAULT&authSource={self.db}"
+        )
+        mongoClient = MongoClient(mongo_uri, serverSelectionTimeoutMS=500)
         try:
             if mongoClient.admin.command('ismaster')['ismaster']:
                 logging.info("Connected to the MongoDB Server!")
@@ -29,10 +35,29 @@ class MongoAPI:
             logging.error("MongoDB Server is down.")
             return None
 
-    def read(self):
-        documents = self.collection.find()
-        output = [{item: data[item] for item in data if item != '_id'} for data in documents]
-        return output
+    def get_all(self):
+        documents = list(self.collection.find({"transcription": {"$exists": True}}))
+        for document in documents:
+            document["job_id"] = str(document.pop("_id"))
+
+        return documents
+
+    def get_by_id(self, job_id):
+        result = {"message": "Item not found"}
+        try:
+            object_id = ObjectId(job_id)
+            document = self.collection.find_one({"_id": object_id})
+            if document:
+                if "transcription" in document:
+                    document["message"] = 'ok'
+                    document["job_id"] = str(document.pop("_id"))
+                    result = document
+                else:
+                    result = {"message": "Transcription in process"}
+            return result
+        except errors.InvalidId:
+            return {"message": "Invalid ObjectId"}
+
 
     def save(self, data):
         response = self.collection.insert_one(data)
@@ -46,8 +71,3 @@ class MongoAPI:
         logging.error(f'Update status: {output}, db_id: {db_id}, data: {data}')
         return output
 
-    def delete(self, data):
-        filt = data['Document']
-        response = self.collection.delete_one(filt)
-        output = {'Status': 'Successfully Deleted' if response.deleted_count > 0 else "Document not found."}
-        return output

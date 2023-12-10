@@ -1,5 +1,4 @@
 import os
-#from dotenv import load_dotenv
 from flask import Blueprint, render_template, redirect, url_for, jsonify, request
 from transcribe_controller import TranscribeController
 from werkzeug.utils import secure_filename
@@ -37,10 +36,18 @@ def transcribe_process_form():
     db_id = transcribe_controller.save_form()
     return render_template('transcribe.html', message=db_id)
 
-#CORS(transcribe_blueprint, resources={"/transcribe.json": {"origins": "http://127.0.0.1:80"}})
-@transcribe_controller_blueprint.route("/transcribe.json", methods=['GET'])
+@transcribe_controller_blueprint.route("/api/transcribe", methods=['GET'])
 def get_transcriptions():
-    dicc = {'test':'hi2dddddddddsssssss'}
-    response = jsonify(dicc)
+    transcribe_controller = TranscribeController()
+    data = transcribe_controller.get_transcriptions()
+    response = jsonify(data)
+    response.headers.add("Access-Control-Allow-Origin", "http://127.0.0.1:80")
+    return response
+
+@transcribe_controller_blueprint.route("/api/transcribe/<job_id>", methods=['GET'])
+def get_transcription_by_id(job_id):
+    transcribe_controller = TranscribeController()
+    data = transcribe_controller.get_transcription_by_id(job_id)
+    response = jsonify(data)
     response.headers.add("Access-Control-Allow-Origin", "http://127.0.0.1:80")
     return response
